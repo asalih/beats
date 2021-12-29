@@ -185,11 +185,19 @@ func EvtSeek(resultSet EvtHandle, position int64, bookmark EvtHandle, flags EvtS
 	return err
 }
 
-// EventHandles reads the event handles from a subscription. It attempt to read
+// EventHandles reads the event handles from a subscription. It attempts to read
 // at most maxHandles. ErrorNoMoreHandles is returned when there are no more
 // handles available to return. Close must be called on each returned EvtHandle
 // when finished with the handle.
 func EventHandles(subscription EvtHandle, maxHandles int) ([]EvtHandle, error) {
+	return EventHandlesWithTimeout(subscription, 0, maxHandles)
+}
+
+// EventHandlesWithTimeout reads the event handles from a subscription. It attempts to read
+// at most maxHandles in specified timeout. Passing 0 means no timeout.
+// ErrorNoMoreHandles is returned when there are no more handles available to return.
+// Close must be called on each returned EvtHandle when finished with the handle.
+func EventHandlesWithTimeout(subscription EvtHandle, timeout uint32, maxHandles int) ([]EvtHandle, error) {
 	if maxHandles < 1 {
 		return nil, fmt.Errorf("maxHandles must be greater than 0")
 	}
@@ -198,8 +206,13 @@ func EventHandles(subscription EvtHandle, maxHandles int) ([]EvtHandle, error) {
 	var numRead uint32
 
 	err := _EvtNext(subscription, uint32(len(eventHandles)),
-		&eventHandles[0], 0, 0, &numRead)
+		&eventHandles[0], timeout, 0, &numRead)
 	if err != nil {
+		// EvtNext timeout err
+		if err == ERROR_TIMEOUT {
+			return nil, err
+		}
+
 		// Munge ERROR_INVALID_OPERATION to ERROR_NO_MORE_ITEMS when no handles
 		// were read. This happens you call the method and there are no events
 		// to read (i.e. polling).

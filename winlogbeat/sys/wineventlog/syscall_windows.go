@@ -44,6 +44,7 @@ const (
 	ERROR_INVALID_HANDLE      syscall.Errno = 6
 	ERROR_INSUFFICIENT_BUFFER syscall.Errno = 122
 	ERROR_NO_MORE_ITEMS       syscall.Errno = 259
+	ERROR_TIMEOUT             syscall.Errno = 1460
 	RPC_S_SERVER_UNAVAILABLE  syscall.Errno = 1722
 	RPC_S_INVALID_BOUND       syscall.Errno = 1734
 	RPC_S_CALL_CANCELLED      syscall.Errno = 1818
